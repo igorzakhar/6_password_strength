@@ -25,7 +25,11 @@ def get_password_strength(password):
     print('Uppercase: ', upper_letter)
     lower_letter = re.findall('[a-z]', password)
     print('Lowercase: ', lower_letter)
-    symbols = ''.join(re.findall(r'[~!@#$%^&*+=]+', password))
+    #symbols = ''.join(re.findall(r'[~!@#$%^&*+=]+', password))
+    symbols = ''.join(re.findall(r'[^a-zA-Z0-9_]', password))
+    midle_num_symb = ''.join(re.findall(r'[^a-zA-Z_]+', password[1:-1]))
+    print('Middle: ', midle_num_symb)
+    
     print('Symbols: ', symbols)
     numbers_only = re.search('^\d+$', password)
     
@@ -48,6 +52,8 @@ def get_password_strength(password):
         requirements += 1
     if requirements == 5:
         requirements_score = requirements * 2
+    if midle_num_symb:
+        midle_num_symb_score = len(midle_num_symb) * 2
 
     
     print('Length: ', lenght, 'symbols')
@@ -66,6 +72,8 @@ def get_password_strength(password):
                    len(digits), '+' + str(numbers_score)],
                   ['Symbols', '+(n*6)', 
                    len(symbols), '+' + str(symbols_score)],
+                   ['Middle Numbers or Symbols', '+(n*2)', 
+                   len(midle_num_symb), '+' + str(midle_num_symb_score)],
                    ['Requirements', '+(n*2)', 
                    requirements, '+' + str(requirements_score)], 
                   ['','', 'Total', total]
