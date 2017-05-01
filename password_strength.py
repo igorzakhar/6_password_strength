@@ -1,4 +1,4 @@
-#sources of inspiration  http://www.passwordmeter.com/
+#Sources of inspiration:  http://www.passwordmeter.com/
 
 import re
 
@@ -9,36 +9,47 @@ def get_password_strength(password):
     if not password:
         return
 
+    lenght = len(password)
     numbers_score = 0
     lower_letters_score = 0
     upper_letters_score = 0
     symbols_score = 0
-    lenght = len(password)
     requirements = 0
     requirements_score = 0
+    midle_num_symb_score = 0
+    letters_only_score = 0
+    numbers_only_score = 0
 
 #---------/regexp/-----------------
     #requirements_pattern = r'^.*(?=.{1,})(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&+=]).*$'
     #requirements = re.search(requirements_pattern, password)
-    digits = ''.join(re.findall('\d+', password))
-    upper_letter = re.findall('[A-Z]', password)
+    digits = ''.join(re.findall(r'\d+', password))
+    upper_letter = re.findall(r'[A-Z]', password)
     print('Uppercase: ', upper_letter)
-    lower_letter = re.findall('[a-z]', password)
+    lower_letter = re.findall(r'[a-z]', password)
     print('Lowercase: ', lower_letter)
     #symbols = ''.join(re.findall(r'[~!@#$%^&*+=]+', password))
     symbols = ''.join(re.findall(r'[^a-zA-Z0-9_]', password))
     midle_num_symb = ''.join(re.findall(r'[^a-zA-Z_]+', password[1:-1]))
     print('Middle: ', midle_num_symb)
-    
     print('Symbols: ', symbols)
-    numbers_only = re.search('^\d+$', password)
+    numbers_only = ''.join(re.findall(r'^\d+$', password))
+    letters_only = ''.join(re.findall(r'^[a-zA-Z]+$', password))
     
-#---------/calculation of metric's/-----------------
+
+#---------/Additions/-----------------
     
     characters_score = lenght * 4       
-    if not numbers_only:
+    if numbers_only:
+        numbers_only_score = len(numbers_only)
+        requirements += 1
+    else:
         numbers_score = len(digits) * 4
         requirements += 1
+    #if not numbers_only:
+    #    numbers_score = len(digits) * 4
+    #    requirements += 1
+    
     if lower_letter:
         lower_letters_score = (lenght - len(lower_letter)) * 2
         requirements += 1
@@ -55,10 +66,19 @@ def get_password_strength(password):
     if midle_num_symb:
         midle_num_symb_score = len(midle_num_symb) * 2
 
+#---------/Deductions/-----------------
+
+    if letters_only:
+        letters_only_score = len(letters_only)
+        requirements += 1
+
+    #if numbers_only:
+    #    numbers_only_score = len(numbers_only)
+    #    requirements += 1
     
     print('Length: ', lenght, 'symbols')
     
-    total = (characters_score + upper_letters_score + lower_letters_score + numbers_score + symbols_score + requirements_score)
+    total = (characters_score + upper_letters_score + lower_letters_score + numbers_score + symbols_score + requirements_score + midle_num_symb_score - letters_only_score - numbers_only_score)
 
 
     table_data = [['Metric\'s', 'Rate','Count','Score'],
@@ -76,6 +96,10 @@ def get_password_strength(password):
                    len(midle_num_symb), '+' + str(midle_num_symb_score)],
                    ['Requirements', '+(n*2)', 
                    requirements, '+' + str(requirements_score)], 
+                   ['Letters Only', '-n', 
+                   len(letters_only), '-' + str(letters_only_score)],
+                   ['Numbers Only', '-n', 
+                   len(numbers_only), '-' + str(numbers_only_score)],
                   ['','', 'Total', total]
                   ]
 
