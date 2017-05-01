@@ -17,6 +17,7 @@ def check_sequential_alphas(password):
             sequential_score += 1
     return sequential_score
 
+
 def check_sequential_numerics(password):
     string_numerics = "01234567890"
     sequential_score = 0
@@ -172,8 +173,7 @@ def get_password_strength(password):
                    ['Sequential Numbers (3+)', '-(n*3)', 
                    sequential_numbers_count, '-' + str(
                        sequential_numbers_score)],
-                  ['','', 'Total', '']
-                  ]
+                    ]
 
     return sum(total_score), table_data
 
@@ -212,4 +212,3 @@ if __name__ == '__main__':
     password = get_user_password()
     total_score, table_data = get_password_strength(password)
     console_output(args.verbose, total_score, table_data)
-
