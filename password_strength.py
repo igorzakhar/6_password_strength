@@ -1,18 +1,31 @@
 #Sources of inspiration:  http://www.passwordmeter.com/
 
 import re
+import argparse
 
 from terminaltables import AsciiTable
 
 
-def get_count_sequential(sequense):
+def check_sequential_alphas(password):
+    string_alphas = "abcdefghijklmnopqrstuvwxyz"
     sequential_score = 0
-    for characters in sequense:
-        for item in range(len(characters)):
-            char_pair = characters[item + 1:item + 3]
-            if (len(char_pair) == 2 and 
-                    (ord(char_pair[0]) - ord(char_pair[1]) == -1)):
-                sequential_score += 1
+    for item in range(len(string_alphas)):
+        str_forward = string_alphas[item:item + 3]
+        str_reverse = str_forward[::-1]
+        if (password.lower().find(str_forward) != -1 or
+            password.lower().find(str_reverse) != -1):
+            sequential_score += 1
+    return sequential_score
+
+def check_sequential_numerics(password):
+    string_numerics = "01234567890"
+    sequential_score = 0
+    for item in range(len(string_numerics)):
+        str_forward = string_numerics[item:item + 3]
+        str_reverse = str_forward[::-1]
+        if (password.lower().find(str_forward) != -1 or
+            password.lower().find(str_reverse) != -1):
+            sequential_score += 1
     return sequential_score
 
 
@@ -35,13 +48,10 @@ def get_password_strength(password):
     consecutive_number_score = 0
     sequential_letters_score = 0
     sequential_numbers_score = 0
-    #sequential_symbols_score = 0
-    
-#---------/regexp/-----------------
+    total_score = []
+
     digits_list = re.findall(r'\d+', password)
     digits = ''.join(digits_list)
-    print(digits_list)
-    print(digits)
     upper_letter = re.findall(r'[A-Z]', password)
     lower_letter = re.findall(r'[a-z]', password)
     symbols = ''.join(re.findall(r'[^a-zA-Z0-9_]', password))
@@ -59,35 +69,30 @@ def get_password_strength(password):
 
     sequense_letters = re.findall(r'[A-Za-z]{3,}', password)
     sequense_numbers = re.findall(r'[0-9]{3,}', password)
-    #sequense_symbols = re.findall(r'[^a-zA-Z_0-9\s]{3,}', password)
-    sequential_letters_score = get_count_sequential(sequense_letters)
-    sequential_numbers_score = get_count_sequential(sequense_numbers)
-    #sequential_symbols_score = get_count_sequential(sequense_symbols)
-
-    print('sequential_letters_score', sequential_letters_score)
-    print('sequential_numbers_score', sequential_numbers_score)
     
+    characters_score = lenght * 4  
+    total_score.append(characters_score)
 
-    characters_score = lenght * 4       
-
-    if numbers_only:
-        numbers_only_score = len(numbers_only)
-        requirements += 1
-       
+#--------------/Additions/--------------- 
+    
     if not numbers_only and digits.isdigit():
         numbers_score = len(digits) * 4
+        total_score.append(numbers_score)
         requirements += 1
     
     if lower_letter:
         lower_letters_score = (lenght - len(lower_letter)) * 2
+        total_score.append(lower_letters_score)
         requirements += 1
         
     if upper_letter:
         upper_letters_score = (lenght - len(upper_letter)) * 2
+        total_score.append(upper_letters_score)
         requirements += 1
         
     if symbols:
         symbols_score = len(symbols) * 6
+        total_score.append(symbols_score)
         requirements += 1
         
     if lenght >= 8:
@@ -95,26 +100,44 @@ def get_password_strength(password):
         
     if requirements == 5:
         requirements_score = requirements * 2
+        total_score.append(requirements_score)
 
     if midle_num_symb:
         midle_num_symb_score = len(midle_num_symb) * 2
+        total_score.append(midle_num_symb_score)
+
+#--------------/Deductions/---------------
+
+    if numbers_only:
+        numbers_only_score = len(numbers_only)
+        total_score.append(-numbers_only_score)
+        requirements += 1
 
     if letters_only:
         letters_only_score = len(letters_only)
+        total_score.append(-letters_only_score)
 
     if consecutive_upper:
         consecutive_upper_score = consecutive_upper * 2
+        total_score.append(-consecutive_upper_score)
     
     if consecutive_lower:
         consecutive_lower_score = consecutive_lower * 2
+        total_score.append(-consecutive_lower_score)
     
     if consecutive_num:
         consecutive_number_score = consecutive_num * 2
-       
-
-    print('Length: ', lenght, 'symbols')
+        total_score.append(-consecutive_number_score)
     
-    total = (characters_score + upper_letters_score + lower_letters_score + numbers_score + symbols_score + requirements_score + midle_num_symb_score - letters_only_score - numbers_only_score - consecutive_upper_score - consecutive_lower_score - consecutive_number_score)
+    sequential_letters_count = check_sequential_alphas(password)
+    if sequential_letters_count:
+        sequential_letters_score = sequential_letters_count * 3
+        total_score.append(-sequential_letters_score)
+    
+    sequential_numbers_count = check_sequential_numerics(password)
+    if sequential_numbers_count:
+        sequential_numbers_score = sequential_numbers_count * 3
+        total_score.append(-sequential_numbers_score)
 
 
     table_data = [['---------- Additions ----------', 'Rate','Count','Score'],
@@ -143,16 +166,17 @@ def get_password_strength(password):
                    consecutive_lower, '-' + str(consecutive_lower_score)],
                    ['Consecutive Numbers', '-(n*2)', 
                    consecutive_num, '-' + str(consecutive_number_score)],
-                  ['','', 'Total', total]
+                   ['Sequential Letters (3+)', '-(n*3)', 
+                   sequential_letters_count, '-' + str(
+                       sequential_letters_score)],
+                   ['Sequential Numbers (3+)', '-(n*3)', 
+                   sequential_numbers_count, '-' + str(
+                       sequential_numbers_score)],
+                  ['','', 'Total', '']
                   ]
 
-    table = AsciiTable(table_data)
-    table.inner_row_border = True
-    table.justify_columns = {0: 'left', 1: 'center', 2: 'center', 3: 'center'}
-    print(table.table)
-    
-    total_total = print(round(total/10))
-    #return digits, lower_letter, upper_letter, symbols
+    return sum(total_score), table_data
+
 
 def get_user_password():
     password = input('Enter password: ')
@@ -162,30 +186,30 @@ def get_user_password():
         return password
 
 
-if __name__ == '__main__':
-    password = get_user_password()
-    get_password_strength(password)
-
-
-"""
-    phone_regex = r"(?:\+?(\d{1,4}))?[-. (]*(\d{1,4})[-. )]*(\d{1,3})[-. ]*(\d{4})(?: *x(\d+))?"
-    if re.search(phone_regex, password):
-        print("ZAPRET")
+def console_output(verbose, total_score, table_data):
+    if round(total_score/10) > 10:
+            strength_score = 10    
     else:
-        return strength_score
-"""
+        strength_score = round(total_score/10)
+    print('Total strength score: {}/10'.format(strength_score))
+    if verbose:
+        table = AsciiTable(table_data)
+        table.inner_row_border = True
+        table.justify_columns = {0: 'left', 1: 'center', 
+                                 2: 'center', 3: 'center'}
+        print(table.table)
 
-"""
-print(
-        'Number of Char.(+(n*4)). n = {}. Score = {}'.format(
-            lenght, characters_score))
-    print(
-        'Lower Letters. +((len-n)*2). n = {}. Score = {}'.format(
-            len(lower_letter), lower_letters_score))
-    print(
-        'Upper Letters. +((len-n)*2). n = {}. Score = {}'.format(
-            len(upper_letter), upper_letters_score))
-    print(
-        'Numbers +(n*4). n = {}. Score = {}'.format(
-            len(digits), numbers_score))
-"""
+
+def process_args():
+    parser = argparse.ArgumentParser(description='Most starred repos find')
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='output issues urls')
+    return  parser.parse_args()
+
+
+if __name__ == '__main__':
+    args = process_args()
+    password = get_user_password()
+    total_score, table_data = get_password_strength(password)
+    console_output(args.verbose, total_score, table_data)
+
