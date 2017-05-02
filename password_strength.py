@@ -2,15 +2,22 @@
 
 import re
 import argparse
+import string
+import sys
 
-from terminaltables import AsciiTable
+try:
+    from terminaltables import AsciiTable
+    catch_import_error = False
+except ImportError:
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    catch_import_error = True
+
 
 
 def check_sequential_alphas(password):
-    string_alphas = "abcdefghijklmnopqrstuvwxyz"
     sequential_score = 0
-    for item in range(len(string_alphas)):
-        str_forward = string_alphas[item:item + 3]
+    for item in range(len(string.ascii_lowercase)):
+        str_forward = string.ascii_lowercase[item:item + 3]
         str_reverse = str_forward[::-1]
         if (password.lower().find(str_forward) != -1 or
             password.lower().find(str_reverse) != -1):
@@ -19,10 +26,9 @@ def check_sequential_alphas(password):
 
 
 def check_sequential_numerics(password):
-    string_numerics = "01234567890"
     sequential_score = 0
-    for item in range(len(string_numerics)):
-        str_forward = string_numerics[item:item + 3]
+    for item in range(len(string.digits)):
+        str_forward = string.digits[item:item + 3]
         str_reverse = str_forward[::-1]
         if (password.lower().find(str_forward) != -1 or
             password.lower().find(str_reverse) != -1):
@@ -192,7 +198,9 @@ def console_output(verbose, total_score, table_data):
     else:
         strength_score = round(total_score/10)
     print('Total strength score: {}/10'.format(strength_score))
-    if verbose:
+    if verbose and catch_import_error:
+        print('Details not available. Reason:',exc_value)
+    elif verbose:
         table = AsciiTable(table_data)
         table.inner_row_border = True
         table.justify_columns = {0: 'left', 1: 'center', 
