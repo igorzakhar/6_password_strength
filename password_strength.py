@@ -30,7 +30,7 @@ def check_sequential_numerics(password):
     return sequential_score
 
 
-def get_password_strength(password):
+def calculate_password_strength(password):
     if not password:
         return
 
@@ -185,13 +185,15 @@ def get_user_password():
     else:
         return password
 
-
-def console_output(verbose, total_score, table_data):
+def get_password_strength(total_score):
     if round(total_score/10) > 10:
-            strength_score = 10    
+            return 10   
     else:
-        strength_score = round(total_score/10)
-    print('Total strength score: {}/10'.format(strength_score))
+        return round(total_score/10)
+
+
+def console_output(verbose, password_strenght_score, table_data):
+    print('Total strength score: {}/10'.format(password_strenght_score))
     if verbose:
         table = AsciiTable(table_data)
         table.inner_row_border = True
@@ -210,5 +212,6 @@ def process_args():
 if __name__ == '__main__':
     args = process_args()
     password = get_user_password()
-    total_score, table_data = get_password_strength(password)
-    console_output(args.verbose, total_score, table_data)
+    total_score, table_data = calculate_password_strength(password)
+    password_strenght_score = get_password_strength(total_score)
+    console_output(args.verbose, password_strenght_score, table_data)
