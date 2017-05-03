@@ -11,10 +11,8 @@
 pip install -r requirements.txt # В качестве альтернативы используйте pip3
 ```
 Рекомендуется устанавливать зависимости в виртуальном окружении, используя [virtualenv](https://github.com/pypa/virtualenv), [virtualenvwrapper](https://pypi.python.org/pypi/virtualenvwrapper) или [venv](https://docs.python.org/3/library/venv.html).  
-Библиотека terminaltables используется для  вывода всех показателей из которых складывается общая оценка сложности пароля.  Установка библиотеки не является обязательной. Если в процессе работы программы данная библиотека не будет обнаружена вы просто получите сообщение:
-```bash
-Details not available. Reson: No module named 'terminaltables'
-```
+
+Библиотека terminaltables используется для  вывода всех показателей из которых складывается общая оценка сложности пароля (см. "Использование").  
 
 # Описание
 
