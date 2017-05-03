@@ -5,13 +5,7 @@ import argparse
 import string
 import sys
 
-try:
-    from terminaltables import AsciiTable
-    catch_import_error = False
-except ImportError:
-    exc_type, exc_value, exc_traceback = sys.exc_info()
-    catch_import_error = True
-
+from terminaltables import AsciiTable
 
 
 def check_sequential_alphas(password):
@@ -198,9 +192,7 @@ def console_output(verbose, total_score, table_data):
     else:
         strength_score = round(total_score/10)
     print('Total strength score: {}/10'.format(strength_score))
-    if verbose and catch_import_error:
-        print('Details not available. Reason:',exc_value)
-    elif verbose:
+    if verbose:
         table = AsciiTable(table_data)
         table.inner_row_border = True
         table.justify_columns = {0: 'left', 1: 'center', 
