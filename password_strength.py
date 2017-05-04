@@ -146,11 +146,9 @@ def get_deductions_score(deductions_type, seq_letters, seq_numbers):
     if consecutive_num_count:
         consecutive_number_score = -(consecutive_num_count * 2)
        
-    #sequential_letters = check_sequential_alphas(password)
     if seq_letters:
         sequential_letters_score = -(seq_letters * 3)
     
-    #sequential_numbers = check_sequential_numerics(password)
     if seq_numbers:
         sequential_numbers_score = -(seq_numbers * 3)
     
