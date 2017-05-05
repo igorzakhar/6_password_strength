@@ -144,15 +144,88 @@ def get_sequential_numbers_score(password):
 def password_strength_calculate(password):
     global_dict = globals()
     requirements = 0
+    requirements_score = 0
+    if len(password) > 8:
+        requirements += 1
     score_dict = {}
     func_dict = { k : v for k,v in global_dict.items() if k.startswith('get_')}
     for key, value in func_dict.items():
         score_dict[key[4:]] = value(password)
         if key[-3:] == 'req' and value(password)[0]:
             requirements += 1
-    score_dict['requirements'] = (requirements, requirements * 2)
+            if requirements == 5:
+                score_dict['requirements'] = (requirements * 2, requirements)
+            else:
+                score_dict['requirements'] = (0, requirements)
     password_strength = sum(score[0] for score in score_dict.values())
     return password_strength, score_dict
+
+
+def output_console(verbose, password_strength, score_dict):
+    password_strength_score = round(password_strength/10)
+    if password_strength_score > 10:
+        password_strength_score = 10   
+    elif password_strength_score < 1:
+        password_strength_score = 1
+    print('Total strength score: {}/10'.format(password_strength_score))
+    if verbose:
+        verbose_data = output_verbose_mode(score_dict)
+        print(verbose_data)
+
+def output_verbose_mode(score_dict):
+
+    table_data = [['---------- Additions ----------', 'Rate','Count','Score'],
+                  ['Number of Characters', '+(n*4)', 
+                   score_dict['number_characters_score'][1], 
+                   '+' + str(score_dict['number_characters_score'][0])],
+                  ['Uppercase Letters', '+((len-n)*2)', 
+                   score_dict['uppercase_score_req'][1],
+                   '+' + str(score_dict['uppercase_score_req'][0])],
+                  ['Lowercase Letters', '+((len-n)*2)', 
+                   score_dict['lowercase_score_req'][1], 
+                   '+' + str(score_dict['lowercase_score_req'][0])],
+                  ['Numbers', '+(n*4)', 
+                   score_dict['numbers_score_req'][1],
+                   '+' + str(score_dict['numbers_score_req'][0])],
+                  ['Symbols', '+(n*6)', 
+                   score_dict['symbol_score_req'][1],
+                   '+' + str(score_dict['symbol_score_req'][0])],
+                  ['Middle Numbers or Symbols', '+(n*2)', 
+                   score_dict['middle_num_symb_score'][1], 
+                   '+' + str(score_dict['middle_num_symb_score'][0])],
+                  ['Requirements', '+(n*2)', 
+                   score_dict['requirements'][1], 
+                   '+' + str(score_dict['requirements'][0])],
+                  ['---------- Deductions ----------','', '', ''], 
+                  ['Letters Only', '-n', 
+                   score_dict['letters_only_score'][1],
+                   score_dict['letters_only_score'][0]],
+                  ['Numbers Only', '-n', 
+                   score_dict['numbers_only_score_req'][1], 
+                   score_dict['numbers_only_score_req'][0]],
+                  ['Consecutive Uppercase Letters', '-(n*2)', 
+                   score_dict['consecutive_upper_score'][1],
+                   score_dict['consecutive_upper_score'][0]],
+                  ['Consecutive Lowercase Letters', '-(n*2)', 
+                   score_dict['consecutive_lower_score'][1],
+                   score_dict['consecutive_lower_score'][0]],
+                  ['Consecutive Numbers', '-(n*2)', 
+                   score_dict['consecutive_number_score'][1],
+                   score_dict['consecutive_number_score'][0]],
+                  ['Sequential Letters (3+)', '-(n*3)', 
+                   score_dict['sequential_letters_score'][1],
+                   score_dict['sequential_letters_score'][0]],
+                  ['Sequential Numbers (3+)', '-(n*3)', 
+                   score_dict['sequential_numbers_score'][1],
+                    score_dict['sequential_numbers_score'][0]],
+                    ]      
+    
+    verbose_table = AsciiTable(table_data)
+    verbose_table.inner_row_border = True
+    verbose_table.justify_columns = {0: 'left', 1: 'center', 
+                                 2: 'center', 3: 'center'}
+    
+    return verbose_table.table
 
 
 def process_args():
@@ -168,11 +241,8 @@ if __name__ == '__main__':
   
     args = process_args()
     password = input_user_password(args.hide)
-    password_strength, score_dict = password_strength_calculate(password)
-    print(password_strength)
-    print(score_dict) 
-
-
-
-
-
+    if not password:
+         print('Password field cannot be empty')
+    else:
+        password_strength, score_dict = password_strength_calculate(password)
+        output_console(args.verbose, password_strength, score_dict)
