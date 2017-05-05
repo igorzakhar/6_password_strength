@@ -168,7 +168,9 @@ if __name__ == '__main__':
   
     args = process_args()
     password = input_user_password(args.hide)
-    
+    password_strength, score_dict = password_strength_calculate(password)
+    print(password_strength)
+    print(score_dict) 
 
 
 
