@@ -6,11 +6,8 @@ import getpass
 from terminaltables import AsciiTable
 
 
-def input_user_password(hide):
-    if hide:
-        password = getpass.getpass(prompt='Enter password: ')
-    else:
-        password = input('Enter password: ')
+def input_user_password():
+    password = input('Enter password: ')
     return password
 
 
@@ -169,8 +166,8 @@ def output_console(verbose, password_strength, score_dict):
         password_strength_score = 1
     print('Total strength score: {}/10'.format(password_strength_score))
     if verbose:
-        verbose_data = output_verbose_mode(score_dict)
-        print(verbose_data)
+        output_verbose_mode(score_dict)
+        
 
 def output_verbose_mode(score_dict):
 
@@ -225,22 +222,20 @@ def output_verbose_mode(score_dict):
     verbose_table.justify_columns = {0: 'left', 1: 'center', 
                                  2: 'center', 3: 'center'}
     
-    return verbose_table.table
+    print(verbose_table.table)
 
 
 def process_args():
     parser = argparse.ArgumentParser(description='Most starred repos find')
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='output issues urls')
-    parser.add_argument('-H', '--hide', action='store_true',
-                        help='Hide input password')
     return  parser.parse_args()
 
 
 if __name__ == '__main__':
   
     args = process_args()
-    password = input_user_password(args.hide)
+    password = input_user_password()
     if not password:
          print('Password field cannot be empty')
     else:
