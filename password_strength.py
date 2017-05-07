@@ -161,7 +161,6 @@ def password_strength_calculate(password):
     else:
         score_dict['requirements'] = (0, requirements)
     password_strength_score = round(sum(score[0] for score in score_dict.values())/10)
-    print(password_strength_score)
     return password_strength_score, score_dict
 
 
