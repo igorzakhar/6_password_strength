@@ -11,13 +11,13 @@ def input_user_password():
     return password
 
 
-def get_number_characters_score(password):
+def number_characters_score(password):
     number_characters_count = len(password)
     number_characters_score = number_characters_count * 4
     return number_characters_score, number_characters_count
 
 
-def get_uppercase_score_req(password):
+def uppercase_score_requirement(password):
     upper_letters_score = 0
     upper_letter = re.findall(r'[A-Z]', password)
     upper_letters_count = len(upper_letter)
@@ -26,7 +26,7 @@ def get_uppercase_score_req(password):
     return upper_letters_score, upper_letters_count
 
 
-def get_lowercase_score_req(password):
+def lowercase_score_requirement(password):
     lower_letters_score = 0
     lower_letter = re.findall(r'[a-z]', password)
     lower_letter_count = len(lower_letter)
@@ -35,7 +35,7 @@ def get_lowercase_score_req(password):
     return lower_letters_score, lower_letter_count
 
 
-def get_numbers_score_req(password):
+def numbers_score_requirement(password):
     numbers_score = 0
     digits_list = re.findall(r'\d+', password)
     digits_count = len(''.join(digits_list))
@@ -44,7 +44,7 @@ def get_numbers_score_req(password):
     return numbers_score, digits_count
 
 
-def get_symbol_score_req(password):
+def symbol_score_requirement(password):
     symbols_score = 0
     symbols = ''.join(re.findall(r'[^a-zA-Z0-9_]', password))
     symbols_count = len(symbols)
@@ -53,7 +53,7 @@ def get_symbol_score_req(password):
     return symbols_score, symbols_count
 
 
-def get_middle_num_symb_score(password):
+def middle_num_symb_score(password):
     middle_num_symb_score = 0
     midle_num_symb = ''.join(re.findall(r'[^a-zA-Z_]+', password[1:-1]))
     midle_num_symb_count = len(midle_num_symb)
@@ -62,7 +62,7 @@ def get_middle_num_symb_score(password):
     return middle_num_symb_score, midle_num_symb_count
 
 
-def get_letters_only_score(password):
+def letters_only_score(password):
     letters_only_score = 0
     letters_only = ''.join(re.findall(r'^[a-zA-Z]+$', password))
     letters_only_count = len(letters_only)
@@ -71,7 +71,7 @@ def get_letters_only_score(password):
     return letters_only_score, letters_only_count
 
 
-def get_numbers_only_score_req(password):
+def numbers_only_score_requirement(password):
     numbers_only_score = 0
     numbers_only = ''.join(re.findall(r'^\d+$', password))
     numbers_only_count = len(numbers_only)
@@ -80,7 +80,7 @@ def get_numbers_only_score_req(password):
     return numbers_only_score, numbers_only_count
 
 
-def get_consecutive_upper_score(password):
+def consecutive_upper_score(password):
     consecutive_upper_score = 0
     consecutive_upper_list = re.findall(r'[A-Z]{2,}', password)
     consecutive_upper_count = sum(
@@ -90,7 +90,7 @@ def get_consecutive_upper_score(password):
     return consecutive_upper_score, consecutive_upper_count
 
 
-def get_consecutive_lower_score(password):
+def consecutive_lower_score(password):
     consecutive_lower_score = 0
     consecutive_lower_list = re.findall(r'[a-z]{2,}', password)
     consecutive_lower_count = sum(
@@ -100,7 +100,7 @@ def get_consecutive_lower_score(password):
     return consecutive_lower_score, consecutive_lower_count
 
 
-def get_consecutive_number_score(password):
+def consecutive_number_score(password):
     consecutive_number_score = 0
     consecutive_num_list = re.findall(r'[0-9]{2,}', password)
     consecutive_num_count = sum(
@@ -110,7 +110,7 @@ def get_consecutive_number_score(password):
     return consecutive_number_score, consecutive_num_count
 
 
-def get_sequential_letters_score(password):
+def sequential_letters_score(password):
     sequential_letters_count = 0
     sequential_letters_score = 0
     for item in range(len(string.ascii_lowercase)):
@@ -124,7 +124,7 @@ def get_sequential_letters_score(password):
     return sequential_letters_score, sequential_letters_count
 
 
-def get_sequential_numbers_score(password):
+def sequential_numbers_score(password):
     sequential_numbers_count = 0
     sequential_numbers_score = 0
     for item in range(len(string.digits)):
@@ -139,27 +139,33 @@ def get_sequential_numbers_score(password):
 
 
 def password_strength_calculate(password):
-    global_dict = globals()
-    requirements = 0
-    requirements_score = 0
-    if len(password) > 8:
-        requirements += 1
     score_dict = {}
-    func_dict = { k : v for k,v in global_dict.items() if k.startswith('get_')}
-    for key, value in func_dict.items():
-        score_dict[key[4:]] = value(password)
-        if key[-3:] == 'req' and value(password)[0]:
+    requirements = 0
+    if not password:
+         print('Password field cannot be empty')
+    func_list = [number_characters_score, uppercase_score_requirement,
+                 lowercase_score_requirement, numbers_score_requirement,
+                 symbol_score_requirement, middle_num_symb_score,
+                 letters_only_score, numbers_only_score_requirement,  
+                 consecutive_upper_score, consecutive_lower_score,
+                 consecutive_number_score, sequential_letters_score, 
+                 sequential_numbers_score]      
+    for func in func_list:
+        score_dict[func.__name__] = func(password)
+        if func.__name__[-11:] == 'requirement' and func(password)[0]:
             requirements += 1
-            if requirements == 5:
-                score_dict['requirements'] = (requirements * 2, requirements)
-            else:
-                score_dict['requirements'] = (0, requirements)
-    password_strength = sum(score[0] for score in score_dict.values())
-    return password_strength, score_dict
+    if len(password) >= 8:
+        requirements += 1
+    if requirements == 5:
+        score_dict['requirements'] = (requirements * 2, requirements)
+    else:
+        score_dict['requirements'] = (0, requirements)
+    password_strength_score = round(sum(score[0] for score in score_dict.values())/10)
+    print(password_strength_score)
+    return password_strength_score, score_dict
 
 
-def output_console(verbose, password_strength, score_dict):
-    password_strength_score = round(password_strength/10)
+def output_console(verbose, password_strength_score, score_dict):
     if password_strength_score > 10:
         password_strength_score = 10   
     elif password_strength_score < 1:
@@ -239,5 +245,5 @@ if __name__ == '__main__':
     if not password:
          print('Password field cannot be empty')
     else:
-        password_strength, score_dict = password_strength_calculate(password)
-        output_console(args.verbose, password_strength, score_dict)
+        password_strength_score, score_dict = password_strength_calculate(password)
+        output_console(args.verbose, password_strength_score, score_dict)
