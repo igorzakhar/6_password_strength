@@ -7,14 +7,14 @@ from terminaltables import AsciiTable
 
 
 def input_user_password():
-    password = input('Enter password: ')
+    password = getpass.getpass('Enter password: ')
     return password
 
 
-def number_characters_score(password):
-    number_characters_count = len(password)
-    number_characters_score = number_characters_count * 4
-    return number_characters_score, number_characters_count
+def length_pass_score_requirement(password):
+    length_password_count = len(password)
+    length_password_score = length_password_count * 4
+    return length_password_score, length_password_count
 
 
 def uppercase_score_requirement(password):
@@ -137,13 +137,16 @@ def sequential_numbers_score(password):
         sequential_numbers_score = -(sequential_numbers_count * 3)
     return sequential_numbers_score, sequential_numbers_count
 
+   
 
 def password_strength_calculate(password):
     score_dict = {}
-    requirements = 0
+    requirements_score = 0
+    password_length_requirements = 8
+    minimum_standard_requirements = 5
     if not password:
          print('Password field cannot be empty')
-    func_list = [number_characters_score, uppercase_score_requirement,
+    func_list = [length_pass_score_requirement, uppercase_score_requirement,
                  lowercase_score_requirement, numbers_score_requirement,
                  symbol_score_requirement, middle_num_symb_score,
                  letters_only_score, numbers_only_score_requirement,  
@@ -153,33 +156,35 @@ def password_strength_calculate(password):
     for func in func_list:
         score_dict[func.__name__] = func(password)
         if func.__name__[-11:] == 'requirement' and func(password)[0]:
-            requirements += 1
-    if len(password) >= 8:
-        requirements += 1
-    if requirements == 5:
-        score_dict['requirements'] = (requirements * 2, requirements)
+            requirements_score += 1
+    if score_dict['length_pass_score_requirement'][1] < password_length_requirements:
+        requirements_score -= 1
+    if requirements_score == minimum_standard_requirements:
+        score_dict['requirements'] = (requirements_score * 2, requirements_score)
     else:
-        score_dict['requirements'] = (0, requirements)
+        score_dict['requirements'] = (0, requirements_score)
     password_strength_score = round(sum(score[0] for score in score_dict.values())/10)
     return password_strength_score, score_dict
 
 
 def output_console(verbose, password_strength_score, score_dict):
-    if password_strength_score > 10:
-        password_strength_score = 10   
-    elif password_strength_score < 1:
-        password_strength_score = 1
+    max_score = 10
+    min_score = 1
+    if password_strength_score > max_score:
+        password_strength_score = max_score   
+    elif password_strength_score < min_score:
+        password_strength_score = min_score
     print('Total strength score: {}/10'.format(password_strength_score))
     if verbose:
-        output_verbose_mode(score_dict)
+        verbose_output_mode(score_dict)
         
 
-def output_verbose_mode(score_dict):
+def verbose_output_mode(score_dict):
 
     table_data = [['---------- Additions ----------', 'Rate','Count','Score'],
                   ['Number of Characters', '+(n*4)', 
-                   score_dict['number_characters_score'][1], 
-                   '+' + str(score_dict['number_characters_score'][0])],
+                   score_dict['length_pass_score_requirement'][1], 
+                   '+' + str(score_dict['length_pass_score_requirement'][0])],
                   ['Uppercase Letters', '+((len-n)*2)', 
                    score_dict['uppercase_score_requirement'][1],
                    '+' + str(score_dict['uppercase_score_requirement'][0])],
@@ -233,7 +238,7 @@ def output_verbose_mode(score_dict):
 def process_args():
     parser = argparse.ArgumentParser(description='Most starred repos find')
     parser.add_argument('-v', '--verbose', action='store_true',
-                        help='output issues urls')
+                        help='verbose output mode')
     return  parser.parse_args()
 
 
